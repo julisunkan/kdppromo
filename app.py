@@ -36,7 +36,27 @@ def test_api():
     model = data.get('model')
     api_key = data.get('api_key')
 
-    return jsonify({"success": True, "message": f"API key test successful for {provider} ({model})"})
+    if not api_key:
+        return jsonify({"success": False, "message": "API key is required"})
+
+    try:
+        if provider == 'openai':
+            import openai
+            client = openai.OpenAI(api_key=api_key)
+            # Minimal call to verify key
+            client.models.list()
+        elif provider == 'gemini':
+            import google.generativeai as genai
+            genai.configure(api_key=api_key)
+            # Minimal call to verify key
+            genai.list_models()
+        else:
+            return jsonify({"success": False, "message": "Invalid provider"})
+
+        return jsonify({"success": True, "message": f"API key test successful for {provider} ({model})"})
+    except Exception as e:
+        logging.error(f"API validation error: {str(e)}")
+        return jsonify({"success": False, "message": f"API key validation failed: {str(e)}"})
 
 @app.route('/save-settings', methods=['POST'])
 def save_settings():

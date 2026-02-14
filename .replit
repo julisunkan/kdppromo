@@ -21,7 +21,7 @@ expertMode = true
 [userenv]
 
 [userenv.shared]
-APP_SECRET_KEY = "v7Y7-y7_Y7-y7_Y7-y7_Y7-y7_Y7-y7_Y7-y7_Y7-y7="
+APP_SECRET_KEY = "3605a9c9cbb395b00bf1d93dea8b33e052478398e108e3484b947845df1c3930"
 
 [workflows]
 runButton = "Project"
