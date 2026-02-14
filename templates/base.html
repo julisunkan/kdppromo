@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KDP Promo Kit Generator</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        :root {
+            --bg: #121212;
+            --panel: #1e1e1e;
+            --text: #e0e0e0;
+            --accent: #4CAF50;
+            --error: #f44336;
+            --warning: #ffeb3b;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        nav {
+            background: var(--panel);
+            padding: 1rem;
+            display: flex;
+            gap: 1rem;
+            border-bottom: 1px solid #333;
+        }
+        nav a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--panel);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 1rem;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: var(--text);
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        #status-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 6px;
+            display: none;
+        }
+        .success { background: rgba(76, 175, 80, 0.2); border: 1px solid var(--accent); color: var(--accent); }
+        .error { background: rgba(244, 67, 54, 0.2); border: 1px solid var(--error); color: var(--error); }
+        .loading { background: rgba(255, 235, 59, 0.2); border: 1px solid var(--warning); color: var(--warning); }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/settings">Settings</a>
+    </nav>
+    <div class="container">
+        {% block content %}{% endblock %}
+        <div id="status-message"></div>
+    </div>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js');
+        }
+        function showMessage(msg, type) {
+            const el = document.getElementById('status-message');
+            el.textContent = msg;
+            el.className = type;
+            el.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

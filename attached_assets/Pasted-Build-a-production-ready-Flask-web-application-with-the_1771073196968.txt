@@ -1,0 +1,344 @@
+Build a production-ready Flask web application with the following requirements:
+
+TECH STACK
+- Python 3
+- Flask
+- SQLite
+- Celery (background jobs)
+- Redis (Celery broker)
+- Pillow (image generation)
+- Cryptography (Fernet encryption)
+- OpenAI SDK
+- Google Generative AI SDK (Gemini)
+- Progressive Web App (PWA)
+- No login system
+- No registration
+- No admin panel
+- No popup alerts
+- No browser push notifications
+- Use inline status messages only
+
+This app generates a downloadable ZIP promo kit for KDP authors.
+
+------------------------------------------------------------
+CORE FEATURES
+------------------------------------------------------------
+
+HOME PAGE (/)
+
+Form inputs:
+- Book Title (required)
+- Subtitle (optional)
+- Author Name
+- Genre (dropdown)
+- Book Description (textarea)
+- Target Audience
+- Price
+- Is Discounted (Yes/No)
+- Upload Book Cover (optional)
+- Tone (dropdown: dramatic, romantic, bold, inspirational, dark)
+
+Submit button:
+"Generate Promo Kit"
+
+After submission:
+- Show inline loading indicator
+- Poll backend for task completion
+- Display:
+    - Tokens used
+    - Estimated cost
+    - Download button
+- Show success/error messages inline only (no popups)
+
+------------------------------------------------------------
+SETTINGS PAGE (/settings)
+------------------------------------------------------------
+
+Allow user to:
+
+- Select AI Provider:
+    - OpenAI
+    - Gemini
+
+- Select Model dynamically:
+    If OpenAI:
+        - gpt-4o
+        - gpt-4o-mini
+    If Gemini:
+        - gemini-1.5-pro
+        - gemini-1.5-flash
+
+- Enter API key (password field)
+- Button: "Test API Key"
+- Button: "Save Settings"
+
+Behavior:
+- Test API via AJAX
+- Show result inline under input field
+- Only allow saving if test succeeds
+- Store settings in SQLite
+
+------------------------------------------------------------
+DATABASE SCHEMA
+------------------------------------------------------------
+
+Table: settings
+- id (primary key)
+- provider (text)
+- model (text)
+- api_key (encrypted blob)
+- created_at (timestamp)
+
+Keep only latest row.
+
+Table: promo_jobs
+- id (primary key)
+- book_title
+- genre
+- tokens_used
+- estimated_cost
+- zip_path
+- created_at
+
+------------------------------------------------------------
+SECURITY
+------------------------------------------------------------
+
+- Encrypt API keys using Fernet.
+- Store encryption secret in environment variable APP_SECRET_KEY.
+- Do not log API keys.
+- Sanitize uploaded filenames.
+- Limit upload size.
+- Exclude database from version control.
+
+------------------------------------------------------------
+API KEY TEST ENDPOINT
+------------------------------------------------------------
+
+POST /test-api
+
+If OpenAI:
+- Make minimal test call using selected model
+- max_tokens = 5
+
+If Gemini:
+- Send simple prompt: "Say OK"
+
+Return JSON:
+{
+  success: true/false,
+  message: "..."
+}
+
+All messages displayed inline.
+
+------------------------------------------------------------
+GENERATION ENGINE
+------------------------------------------------------------
+
+When user submits form:
+
+1. Fetch latest settings
+2. Decrypt API key
+3. Build structured psychological copywriting prompt:
+
+"You are an expert Amazon direct-response copywriter.
+Identify emotional tension.
+Generate:
+- 5 Amazon-optimized hooks
+- 3 curiosity-gap headlines
+- 2 emotional angle versions
+- 1 urgency version (if discounted)
+- 3 CTA variations
+Keep headlines under 120 characters."
+
+4. Call selected provider + selected model
+5. Capture token usage (if available)
+6. Estimate cost using pricing map
+7. Save job record
+8. Generate images
+9. Build ZIP file
+10. Return task completion status
+
+------------------------------------------------------------
+COST ESTIMATION
+------------------------------------------------------------
+
+Create pricing dictionary for:
+
+OpenAI:
+- gpt-4o
+- gpt-4o-mini
+
+Gemini:
+- gemini-1.5-pro
+- gemini-1.5-flash
+
+Estimate:
+cost = (tokens / 1000) * price_per_1k
+
+Display inline:
+Tokens used: ###
+Estimated cost: $###
+
+------------------------------------------------------------
+IMAGE GENERATION
+------------------------------------------------------------
+
+If cover uploaded:
+
+- Resize cover
+- Create 1080x1080 dark background
+- Paste centered cover
+- Overlay title text
+- Generate 2–3 design variations
+- Save in static/generated/
+
+------------------------------------------------------------
+ZIP OUTPUT
+------------------------------------------------------------
+
+ZIP must include:
+- promo.txt
+- headline-variations.txt
+- cta-variations.txt
+- promo-image-1.png
+- promo-image-2.png
+
+Return ZIP for download.
+
+------------------------------------------------------------
+BACKGROUND JOBS
+------------------------------------------------------------
+
+Use Celery + Redis.
+
+Generation runs asynchronously.
+
+Flow:
+- POST /generate → returns task_id
+- Frontend polls /status/<task_id> every 2 seconds
+- When complete:
+    - Show inline success
+    - Show token usage
+    - Show estimated cost
+    - Show download button
+
+No popup notifications.
+
+------------------------------------------------------------
+PWA REQUIREMENTS
+------------------------------------------------------------
+
+Convert this app into a Progressive Web App.
+
+1. manifest.json must include:
+- name
+- short_name
+- start_url
+- display: standalone
+- background_color: #121212
+- theme_color: #121212
+- icons:
+    - 192x192 PNG logo
+    - 512x512 PNG logo
+    - 512x512 maskable PNG logo
+
+Store icons in:
+static/icons/
+
+2. service-worker.js:
+- Cache static assets
+- Cache templates
+- Provide offline fallback page
+- No push notifications
+- No background sync
+- No notification permissions
+
+3. Register service worker in base template:
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js');
+}
+
+4. Inline status message container:
+<div id="status-message"></div>
+
+Color rules:
+- Green = success
+- Red = error
+- Yellow = loading
+
+No alert() usage.
+
+------------------------------------------------------------
+DARK SAAS UI
+------------------------------------------------------------
+
+Modern dark theme:
+- Background: #121212
+- Panels: #1e1e1e
+- Text: #e0e0e0
+- Accent: #4CAF50
+- Rounded corners
+- Responsive layout
+- Mobile friendly
+- Installable as PWA
+
+Navbar:
+- Home
+- Settings
+
+------------------------------------------------------------
+PROJECT STRUCTURE
+------------------------------------------------------------
+
+app.py
+models.py
+celery_worker.py
+services/
+    generator.py
+    openai_provider.py
+    gemini_provider.py
+    image_builder.py
+    zip_builder.py
+    encryption.py
+templates/
+    base.html
+    index.html
+    settings.html
+static/
+    uploads/
+    generated/
+    zips/
+    icons/
+        icon-192.png
+        icon-512.png
+        icon-maskable-512.png
+    manifest.json
+    service-worker.js
+requirements.txt
+
+------------------------------------------------------------
+PRODUCTION READINESS
+------------------------------------------------------------
+
+- Use environment variables
+- Handle errors gracefully
+- Return JSON for async endpoints
+- Provide README instructions for:
+    - Setting APP_SECRET_KEY
+    - Starting Redis
+    - Running Celery worker
+    - Running Flask app
+
+Generate full working code including:
+- Flask routes
+- Celery setup
+- Encryption utilities
+- Service worker
+- Manifest
+- PWA setup
+- Inline messaging UI
+- requirements.txt
+
+Make the app installable as a PWA on mobile and desktop.

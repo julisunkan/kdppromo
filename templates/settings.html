@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Settings</h2>
+<div style="margin-bottom: 2rem;">
+    <label>AI Provider</label>
+    <select id="provider" onchange="updateModels()">
+        <option value="openai" {% if settings and settings.provider == 'openai' %}selected{% endif %}>OpenAI</option>
+        <option value="gemini" {% if settings and settings.provider == 'gemini' %}selected{% endif %}>Gemini</option>
+    </select>
+
+    <label>Model</label>
+    <select id="model"></select>
+
+    <label>API Key</label>
+    <input type="password" id="api_key" placeholder="Enter API Key">
+    <div id="test-result"></div>
+
+    <button onclick="testKey()" style="margin-top: 1rem; background: #555;">Test API Key</button>
+    <button id="save-btn" onclick="saveSettings()" style="margin-top: 1rem;" disabled>Save Settings</button>
+</div>
+
+<script>
+const models = {
+    openai: ['gpt-4o', 'gpt-4o-mini'],
+    gemini: ['gemini-1.5-pro', 'gemini-1.5-flash']
+};
+
+function updateModels() {
+    const provider = document.getElementById('provider').value;
+    const modelSelect = document.getElementById('model');
+    modelSelect.innerHTML = '';
+    models[provider].forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = m;
+        if ('{{ settings.model if settings else "" }}' === m) opt.selected = true;
+        modelSelect.appendChild(opt);
+    });
+}
+
+async function testKey() {
+    const provider = document.getElementById('provider').value;
+    const model = document.getElementById('model').value;
+    const api_key = document.getElementById('api_key').value;
+    
+    if (!api_key) {
+        showMessage('Please enter an API key', 'error');
+        return;
+    }
+
+    showMessage('Testing API key...', 'loading');
+    const resp = await fetch('/test-api', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, model, api_key })
+    });
+    const data = await resp.json();
+    
+    if (data.success) {
+        showMessage(data.message, 'success');
+        document.getElementById('save-btn').disabled = false;
+    } else {
+        showMessage(data.message, 'error');
+        document.getElementById('save-btn').disabled = true;
+    }
+}
+
+async function saveSettings() {
+    const provider = document.getElementById('provider').value;
+    const model = document.getElementById('model').value;
+    const api_key = document.getElementById('api_key').value;
+
+    const resp = await fetch('/save-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, model, api_key })
+    });
+    const data = await resp.json();
+    if (data.success) {
+        showMessage(data.message, 'success');
+    } else {
+        showMessage(data.message, 'error');
+    }
+}
+
+updateModels();
+</script>
+{% endblock %}
