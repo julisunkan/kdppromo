@@ -61,7 +61,7 @@ def save_settings():
         encrypted_key = encryptor.encrypt(api_key)
         
         # Keep only latest row
-        Settings.query.delete()
+        db.session.query(Settings).delete()
         new_settings = Settings(provider=provider, model=model, api_key=encrypted_key)
         db.session.add(new_settings)
         db.session.commit()
@@ -88,6 +88,10 @@ def sw():
 @app.route('/manifest.json')
 def manifest():
     return send_from_directory('static', 'manifest.json', mimetype='application/json')
+
+@app.route('/download/<filename>')
+def download_zip(filename):
+    return send_from_directory('static/zips', filename)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

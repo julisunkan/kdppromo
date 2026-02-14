@@ -10,6 +10,9 @@ class Settings(db.Model):
     api_key = db.Column(db.Text, nullable=False)  # Encrypted
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    def __init__(self, **kwargs):
+        super(Settings, self).__init__(**kwargs)
+
 class PromoJob(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     book_title = db.Column(db.String(200), nullable=False)
